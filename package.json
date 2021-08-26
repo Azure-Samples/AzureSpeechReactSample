@@ -9,7 +9,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^4.5.3",
     "dotenv": "^8.2.0",
-    "microsoft-cognitiveservices-speech-sdk": "^1.14.1",
+    "microsoft-cognitiveservices-speech-sdk": "^1.18.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.1",
