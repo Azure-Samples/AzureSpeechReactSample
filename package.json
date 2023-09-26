@@ -9,7 +9,7 @@
     "axios": "^1.4.0",
     "bootstrap": "^5.3.0",
     "dotenv": "^16.3.1",
-    "microsoft-cognitiveservices-speech-sdk": "^1.29.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.32.0",
     "react": "^18.2.0",
     "react-dom": "^18.0.1",
     "react-scripts": "5.0.1",
@@ -48,10 +48,13 @@
     "express": "^4.18.2",
     "express-pino-logger": "^7.0.0",
     "node-env-run": "^4.0.2",
-    "nodemon": "^2.0.22",
+    "nodemon": "^3.0.1",
     "npm-run-all": "^4.1.5",
     "pino-colada": "^2.2.2",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  },
+  "overrides": {
+    "css-select": "^5.1.0"
   },
   "proxy": "http://localhost:3001"
 }
