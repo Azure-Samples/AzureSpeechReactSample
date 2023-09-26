@@ -55,11 +55,35 @@ export default class App extends Component {
     async textToSpeech() {
         const tokenObj = await getTokenOrRefresh();
         const speechConfig = speechsdk.SpeechConfig.fromAuthorizationToken(tokenObj.authToken, tokenObj.region);
-        speechConfig.speechRecognitionLanguage = 'en-US';
-        
+
+        let synthesizer = new speechsdk.SpeechSynthesizer(speechConfig);
+
         const textToSpeak = 'This is an example of speech synthesis.';
         this.setState({
             displayText: `speaking text: ${textToSpeak}...`
+        });
+        synthesizer.speakTextAsync(
+          textToSpeak,
+          result => {
+            let displayText;
+            if (result.reason === speechsdk.ResultReason.SynthesizingAudioCompleted) {
+                displayText = `synthesis finished for "${textToSpeak}".\n`
+            } else if (result.reason === speechsdk.ResultReason.Canceled) {
+                displayText = `synthesis failed. Error detail: ${result.errorDetails}.\n`
+            }
+            synthesizer.close();
+            synthesizer = undefined;
+            this.setState({
+                displayText: displayText
+            });
+          },
+          function (err) {
+            this.setState({
+                displayText: `Error: ${err}.\n`
+            });
+
+            synthesizer.close();
+            synthesizer = undefined;
         });
     }
 
