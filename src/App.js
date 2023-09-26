@@ -52,6 +52,17 @@ export default class App extends Component {
         });
     }
 
+    async textToSpeech() {
+        const tokenObj = await getTokenOrRefresh();
+        const speechConfig = speechsdk.SpeechConfig.fromAuthorizationToken(tokenObj.authToken, tokenObj.region);
+        speechConfig.speechRecognitionLanguage = 'en-US';
+        
+        const textToSpeak = 'This is an example of speech synthesis.';
+        this.setState({
+            displayText: `speaking text: ${textToSpeak}...`
+        });
+    }
+
     async fileChange(event) {
         const audioFile = event.target.files[0];
         console.log(audioFile);
@@ -102,6 +113,11 @@ export default class App extends Component {
                             />
                             Convert speech to text from an audio file.
                         </div>
+                        <div className="mt-2">
+                            <i className="fas fa-volume-up fa-lg mr-2" onClick={() => this.textToSpeech()}></i>
+                            Convert text to speech.
+                        </div>
+
                     </div>
                     <div className="col-6 output-display rounded">
                         <code>{this.state.displayText}</code>

@@ -10,6 +10,14 @@
     color: #0c6e47;
 }
 
+.fa-volume-up {
+    color: gold;
+}
+
+.fa-volume-up:hover {
+    color: darkgoldenrod;
+}
+
 .fa-file-audio {
     color: #FF652F;
 }
