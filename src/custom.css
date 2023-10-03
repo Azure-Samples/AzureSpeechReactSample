@@ -18,6 +18,14 @@
     color: darkgoldenrod;
 }
 
+.fa-volume-mute {
+    color: white;
+}
+
+.fa-volume-up:hover {
+    color: beige;
+}
+
 .fa-file-audio {
     color: #FF652F;
 }
