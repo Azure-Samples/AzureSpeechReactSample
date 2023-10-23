@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Container } from 'reactstrap';
 import { getTokenOrRefresh } from './token_util';
 import './custom.css'
-import { ResultReason } from 'microsoft-cognitiveservices-speech-sdk';
 
 const speechsdk = require('microsoft-cognitiveservices-speech-sdk')
 
 export default function App() { 
     const [displayText, setDisplayText] = useState('INITIALIZED: ready to test speech...');
     const [player, updatePlayer] = useState({p: undefined, muted: false});
+    const [recognizer, updateRecognizer] = useState(undefined);
 
     async function sttFromMic() {
         const tokenObj = await getTokenOrRefresh();
@@ -16,12 +16,12 @@ export default function App() {
         speechConfig.speechRecognitionLanguage = 'en-US';
         
         const audioConfig = speechsdk.AudioConfig.fromDefaultMicrophoneInput();
-        const recognizer = new speechsdk.SpeechRecognizer(speechConfig, audioConfig);
+        const speechRecognizer = new speechsdk.SpeechRecognizer(speechConfig, audioConfig);
 
         setDisplayText('speak into your microphone...');
 
-        recognizer.recognizeOnceAsync(result => {
-            if (result.reason === ResultReason.RecognizedSpeech) {
+        speechRecognizer.recognizeOnceAsync(result => {
+            if (result.reason === speechsdk.ResultReason.RecognizedSpeech) {
                 setDisplayText(`RECOGNIZED: Text=${result.text}`);
             } else {
                 setDisplayText('ERROR: Speech was cancelled or could not be recognized. Ensure your microphone is working properly.');
@@ -29,11 +29,59 @@ export default function App() {
         });
     }
 
+    async function sttFromMicContinous() {
+        const tokenObj = await getTokenOrRefresh();
+        const speechConfig = speechsdk.SpeechConfig.fromAuthorizationToken(tokenObj.authToken, tokenObj.region);
+        speechConfig.speechRecognitionLanguage = 'en-US';
+        
+        const audioConfig = speechsdk.AudioConfig.fromDefaultMicrophoneInput();
+        const speechRecognizer = new speechsdk.SpeechRecognizer(speechConfig, audioConfig);
+        updateRecognizer(reco => {
+            reco = speechRecognizer;
+            return reco;
+        });
+        
+        // handle results
+        speechRecognizer.recognized = (_s, event) => {
+            if (event.result.reason === speechsdk.ResultReason.RecognizedSpeech) {
+                setDisplayText(`(recognized)  Reason: ${speechsdk.ResultReason[event.result.reason]} Text: ${event.result.text}`);
+            }
+        };
+        speechRecognizer.canceled = () => {
+            setDisplayText('Canceled: Speech was cancelled or could not be recognized. Ensure your microphone is working properly.');
+            updateRecognizer(reco => {
+                reco.close();
+                return null;
+            });
+            
+        };
+
+        setDisplayText('speak into your microphone...');
+
+        speechRecognizer.startContinuousRecognitionAsync();
+    }
+
+    async function sttStopContinousRecognition() {
+        updateRecognizer(reco => {
+            if (reco) {
+                setDisplayText('Stopping Continuous Recognition...');
+                reco.stopContinuousRecognitionAsync(() => {
+                    reco.close();
+                });
+            }
+            return null;
+        });
+        
+    }
+
     async function textToSpeech() {
         const tokenObj = await getTokenOrRefresh();
         const speechConfig = speechsdk.SpeechConfig.fromAuthorizationToken(tokenObj.authToken, tokenObj.region);
         const myPlayer = new speechsdk.SpeakerAudioDestination();
-        updatePlayer(p => {p.p = myPlayer; return p;});
+        updatePlayer(p => {
+            p.p = myPlayer; 
+            return p;
+        });
         const audioConfig = speechsdk.AudioConfig.fromSpeakerOutput(player.p);
 
         let synthesizer = new speechsdk.SpeechSynthesizer(speechConfig, audioConfig);
@@ -89,7 +137,7 @@ export default function App() {
 
         recognizer.recognizeOnceAsync(result => {
             let text;
-            if (result.reason === ResultReason.RecognizedSpeech) {
+            if (result.reason === speechsdk.ResultReason.RecognizedSpeech) {
                 text = `RECOGNIZED: Text=${result.text}`
             } else {
                 text = 'ERROR: Speech was cancelled or could not be recognized. Ensure your microphone is working properly.';
@@ -106,7 +154,13 @@ export default function App() {
             <div className="row main-container">
                 <div className="col-6">
                     <i className="fas fa-microphone fa-lg mr-2" onClick={() => sttFromMic()}></i>
-                    Convert speech to text from your mic.
+                    Convert speech to text from your mic (One shot).
+                    <br />
+                    <i className="fas fa-microphone fa-lg mr-2" onClick={() => sttFromMicContinous()}></i>
+                    Convert speech to text from your mic (Continuous).
+                    <br />
+                    <i className="fas fa-microphone fa-lg mr-2" onClick={() => sttStopContinousRecognition()}></i>
+                    Stop continuous recognition.
 
                     <div className="mt-2">
                         <label htmlFor="audio-file"><i className="fas fa-file-audio fa-lg mr-2"></i></label>
